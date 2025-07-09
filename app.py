@@ -18,8 +18,8 @@ class ReasonType(Enum):
 ALLOWED_REASONS = [r.value for r in ReasonType]
 
 @app.route("/", methods=["GET"])
-def index():
-    return jsonify({"message": "✅ Dayoff Tracker API работает!"}), 200
+def home():
+    return jsonify({"message": "Dayoff Tracker API работает 💡"}), 200
 
 @app.route("/employers", methods=["POST"])
 def add_employer():
@@ -31,7 +31,8 @@ def add_employer():
             return jsonify({"error": f"Поле '{field}' обязательно"}), 400
 
     data["id"] = str(uuid.uuid4())
-    data.setdefault("profile_image", "")  # если не указали
+    data.setdefault("profile_image", "")  
+    data["vacation_limit"] = 30
 
     try:
         response = supabase.table("employers").insert(data).execute()
@@ -156,7 +157,7 @@ def delete_day_off(dayoff_id):
         return jsonify({"message": "Выходной удалён"}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
+    
 @app.route("/sick_days/<employer_id>", methods=["GET"])
 def get_sick_days(employer_id):
     try:
@@ -171,7 +172,7 @@ def get_sick_days(employer_id):
         return jsonify(result.data), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
+    
 @app.route("/vacations", methods=["POST"])
 def add_vacation():
     data = request.get_json()
@@ -230,6 +231,54 @@ def delete_vacation(vacation_id):
             .execute()
         )
         return jsonify({"message": "Отпуск удалён"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+@app.route("/vacation-balances", methods=["GET"])
+def vacation_balances():
+    try:
+        employers = supabase.table("employers").select("id, firstName, lastName, vacation_limit").execute().data
+        balances = []
+
+        for emp in employers:
+            emp_id = emp["id"]
+            full_name = f"{emp['firstName']} {emp['lastName']}"
+            limit = emp.get("vacation_limit", 30)
+
+            vacations = supabase.table("vacations").select("start_date, end_date").eq("employer_id", emp_id).execute().data
+
+            used_days = 0
+            for v in vacations:
+                start = datetime.fromisoformat(v["start_date"])
+                end = datetime.fromisoformat(v["end_date"])
+                used_days += (end - start).days + 1
+
+            remaining = max(0, limit - used_days)
+
+            balances.append({
+                "name": full_name,
+                "used_days": used_days,
+                "remaining_days": remaining
+            })
+
+        return jsonify(balances), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/vacation-balance/<employer_id>", methods=["GET"])
+def vacation_balance_single(employer_id):
+    try:
+        emp = supabase.table("employers").select("firstName, lastName, vacation_limit").eq("id", employer_id).single().execute().data
+        full_name = f"{emp['firstName']} {emp['lastName']}"
+        limit = emp.get("vacation_limit", 30)
+
+        vacations = supabase.table("vacations").select("start_date, end_date").eq("employer_id", employer_id).execute().data
+
+        used_days = sum((datetime.fromisoformat(v["end_date"]) - datetime.fromisoformat(v["start_date"])).days + 1 for v in vacations)
+        remaining = max(0, limit - used_days)
+
+        return jsonify({"name": full_name, "used_days": used_days, "remaining_days": remaining}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
