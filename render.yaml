@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: dayoff-tracker
+    name: dayoff-api
     env: python
     buildCommand: ""
     startCommand: "python app.py"
