@@ -5,12 +5,10 @@ import uuid
 
 app = Flask(__name__)
 
-# 🔐 Твои ключи Supabase
 SUPABASE_URL = "https://fejzbmttbhyhenfxnjkq.supabase.co"
-SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."  # укоротила для безопасности
+SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZlanpibXR0Ymh5aGVuZnhuamtxIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTczOTk0OTczNSwiZXhwIjoyMDU1NTI1NzM1fQ.YRFeFyfN4I5Ke_LEweTwMzha2xXkLcNAyEMcwCkdfCo" 
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-# 📚 Enum — причины отсутствия
 class ReasonType(Enum):
     SICK_LEAVE = "болеет"
     HOLIDAY = "праздник"
@@ -19,9 +17,6 @@ class ReasonType(Enum):
 
 ALLOWED_REASONS = [r.value for r in ReasonType]
 
-# ===================== EMPLOYERS =====================
-
-# ➕ Добавить сотрудника
 @app.route("/employers", methods=["POST"])
 def add_employer():
     data = request.get_json()
@@ -40,7 +35,6 @@ def add_employer():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# 📄 Получить всех сотрудников
 @app.route("/employers", methods=["GET"])
 def get_all_employers():
     try:
@@ -49,7 +43,6 @@ def get_all_employers():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# 👤 Получить одного сотрудника
 @app.route("/employers/<employer_id>", methods=["GET"])
 def get_employer(employer_id):
     try:
@@ -64,7 +57,6 @@ def get_employer(employer_id):
     except Exception as e:
         return jsonify({"error": f"Сотрудник не найден: {str(e)}"}), 404
 
-# ✏️ Обновить сотрудника
 @app.route("/employers/<employer_id>", methods=["PUT"])
 def update_employer(employer_id):
     data = request.get_json()
@@ -80,7 +72,6 @@ def update_employer(employer_id):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# ❌ Удалить сотрудника
 @app.route("/employers/<employer_id>", methods=["DELETE"])
 def delete_employer(employer_id):
     try:
@@ -94,9 +85,6 @@ def delete_employer(employer_id):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# ===================== DAY OFFS =====================
-
-# ➕ Добавить выходной
 @app.route("/day_offs", methods=["POST"])
 def add_day_off():
     data = request.get_json()
@@ -120,7 +108,6 @@ def add_day_off():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# 📄 Получить выходные по сотруднику
 @app.route("/day_offs/<employer_id>", methods=["GET"])
 def get_day_offs(employer_id):
     try:
@@ -139,7 +126,6 @@ def get_day_offs(employer_id):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# ✏️ Обновить выходной
 @app.route("/day_offs/<dayoff_id>", methods=["PUT"])
 def update_day_off(dayoff_id):
     data = request.get_json()
@@ -154,7 +140,6 @@ def update_day_off(dayoff_id):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# ❌ Удалить выходной
 @app.route("/day_offs/<dayoff_id>", methods=["DELETE"])
 def delete_day_off(dayoff_id):
     try:
@@ -168,7 +153,5 @@ def delete_day_off(dayoff_id):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# ===================== СТАРТ СЕРВЕРА =====================
-
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=10000)
