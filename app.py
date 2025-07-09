@@ -172,5 +172,66 @@ def get_sick_days(employer_id):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route("/vacations", methods=["POST"])
+def add_vacation():
+    data = request.get_json()
+
+    required = ['start_date', 'end_date', 'employer_id']
+    for field in required:
+        if field not in data:
+            return jsonify({"error": f"Поле '{field}' обязательно"}), 400
+
+    data["id"] = str(uuid.uuid4())
+
+    try:
+        response = supabase.table("vacations").insert(data).execute()
+        return jsonify({"message": "Отпуск добавлен", "data": response.data}), 201
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/vacations/<employer_id>", methods=["GET"])
+def get_vacations_by_employer(employer_id):
+    try:
+        result = (
+            supabase.table("vacations")
+            .select("*")
+            .eq("employer_id", employer_id)
+            .order("start_date", desc=False)
+            .execute()
+        )
+        return jsonify(result.data), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/vacation/<vacation_id>", methods=["PUT"])
+def update_vacation(vacation_id):
+    data = request.get_json()
+    try:
+        response = (
+            supabase.table("vacations")
+            .update(data)
+            .eq("id", vacation_id)
+            .execute()
+        )
+        return jsonify({"message": "Отпуск обновлён", "data": response.data}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/vacation/<vacation_id>", methods=["DELETE"])
+def delete_vacation(vacation_id):
+    try:
+        response = (
+            supabase.table("vacations")
+            .delete()
+            .eq("id", vacation_id)
+            .execute()
+        )
+        return jsonify({"message": "Отпуск удалён"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
