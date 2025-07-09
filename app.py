@@ -157,5 +157,20 @@ def delete_day_off(dayoff_id):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route("/sick_days/<employer_id>", methods=["GET"])
+def get_sick_days(employer_id):
+    try:
+        result = (
+            supabase.table("day_offs")
+            .select("*")
+            .eq("employer_id", employer_id)
+            .eq("reason", "болеет")
+            .order("start_date", desc=False)
+            .execute()
+        )
+        return jsonify(result.data), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
