@@ -17,6 +17,10 @@ class ReasonType(Enum):
 
 ALLOWED_REASONS = [r.value for r in ReasonType]
 
+@app.route("/", methods=["GET"])
+def index():
+    return jsonify({"message": "✅ Dayoff Tracker API работает!"}), 200
+
 @app.route("/employers", methods=["POST"])
 def add_employer():
     data = request.get_json()
