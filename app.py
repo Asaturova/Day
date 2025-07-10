@@ -283,5 +283,25 @@ def vacation_balance_single(employer_id):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route("/missed_days", methods=["POST"])
+def post_total_missed_days():
+    data = request.get_json()
+
+    if "employer_id" not in data:
+        return jsonify({"error": "Поле 'employer_id' обязательно"}), 400
+
+    try:
+        days = supabase.table("day_offs").select("start_date, end_date").eq("employer_id", data["employer_id"]).execute().data
+
+        total = 0
+        for d in days:
+            start = datetime.fromisoformat(d["start_date"])
+            end = datetime.fromisoformat(d["end_date"])
+            total += (end - start).days + 1
+
+        return jsonify({"missed_days": total}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
